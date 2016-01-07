@@ -1,0 +1,7 @@
+
+
+meladx 
+-v --verbose Mode verbeux
+-s --smtp_server  adresse / Nom fqdn du serveur smtp
+-r --sender adresse de l'expediteur
+-f --config fichier de config
