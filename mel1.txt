@@ -1,8 +1,7 @@
 From: test@sra.fr
-To: systeme@sra.fr
+To: systeme@sra.fr;cbonnet@sra.fr
 To: mmoua@sra.fr
 To: systst@sra.fr
-Cc: cbonnet@sra.fr
 Subject: Test d'envoi de message go_meladx
 Ligne1: Test envoi x3
 Ligne2: Test

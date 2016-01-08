@@ -10,6 +10,10 @@
 // -s : serveur stmp  : adresse ip ou fqdn
 // =============================================
 
+// Librairie necessaire pour la prise en compte
+// des fichiers de configs
+// go get github.com/BurntSushi/toml
+
 package main
 
 import (
@@ -52,7 +56,7 @@ var Config_Auth Config_File
 func set_default_config_file () (filename string) {
 	switch os := runtime.GOOS; os {
 		case "linux":
-			filename = "meladx.conf"
+			filename = "/etc/meladx.conf"
 		case "windows":
 			filename = "meladx.conf"
 		default:
@@ -92,9 +96,10 @@ func main() {
 
 	 if DEBUG {
 	 	log.Println("========== START CONFIG FILE =================" )
-		log.Println(" Server_smtp ", Config_Auth.Server_smtp )
-		log.Println(" Auth_Login ", Config_Auth.Auth_Login )
-		log.Println(" Auth_Password ", Config_Auth.Auth_Password )
+		log.Println(" Config File   :", set_default_config_file() )
+		log.Println(" Server_smtp   :", Config_Auth.Server_smtp )
+		log.Println(" Auth_Login    :", Config_Auth.Auth_Login )
+		log.Println(" Auth_Password :", Config_Auth.Auth_Password )
 	 }
 
 	// ---------------------------------
@@ -124,7 +129,10 @@ func main() {
 		} else if strings.HasPrefix(s.Text(), "To:") {
 			re := regexp.MustCompile(`To:(.*)$`)
 			f := re.FindStringSubmatch(s.Text())
-			TO = append(TO, strings.TrimSpace(f[1]))
+			t := strings.Split(f[1], ";")
+			for _, l := range t {
+				TO = append(TO, strings.TrimSpace(l))
+			}
 			// CC
 		} else if strings.HasPrefix(s.Text(), "Cc:") {
 			re := regexp.MustCompile(`Cc:(.*)$`)
@@ -186,9 +194,20 @@ func main() {
 
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
+
+	// TO pour l'emetteur
 	to      := []string{ TO[0] }
-	msg_to  := fmt.Sprintf("To: %s\r\n", TO[0] )
+
+	// La liste des beneficaires
+	msg_to  := ""
+	for _, t := range TO {
+		msg_to  += fmt.Sprintf("To: %s\r\n", t )
+	}
+
+	// Le sujet
 	subject := fmt.Sprintf( "Subject: %s\r\n\n" , SUBJECT[0] )
+
+	// Le corps
 	body    := strings.Join( BODY, "\n" )
 
 	if DEBUG {
