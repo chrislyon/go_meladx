@@ -151,6 +151,7 @@ func main() {
 
 	// TODO : traitement des Pieces jointes
 
+	// Affichage du DEBUG
 	if DEBUG {
 		log.Println("====FROM============================")
 		for _, F := range FROM {
@@ -178,21 +179,31 @@ func main() {
 		}
 	}
 
+	// ---------------------
 	// Envoi du mail
-	log.Println("===== ENVOI DU MAIL ===========================")
+	// ---------------------
+	if DEBUG {
+		log.Println("===== ENVOI DU MAIL ===========================")
+	}
+
 	// Set up authentication information.
 	auth := smtp.PlainAuth("", Config_Auth.Auth_Login, Config_Auth.Auth_Password, Config_Auth.Server_smtp )
 
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
-	to := []string{ TO[0]}
-	msg := []byte("To: cbonnet@sra.fr\r\n" +
-		"Subject: discount Gophers!\r\n" +
-		"\r\n" +
-		"This is the email body.\r\n")
-	err := smtp.SendMail( Param.Server_smtp, auth, Param.sender, to, msg)
+	to      := []string{ TO[0] }
+	msg_to  := fmt.Sprintf("To: %s\r\n", TO[0] )
+	subject := fmt.Sprintf( "Subject: %s\r\n\n" , SUBJECT[0] )
+	body    := strings.Join( BODY, "\n" )
+
+	if DEBUG {
+		log.Println(" BODY : ", body )
+	}
+
+	msg := []byte( msg_to + subject + body + "\r\n" )
+
+	err := smtp.SendMail( Config_Auth.Server_smtp, auth, Param.sender, to, msg)
 	if err != nil {
 		log.Fatal(err)
 	}
-}
 }

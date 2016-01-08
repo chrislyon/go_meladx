@@ -1,7 +1,7 @@
 
 
 BIN=meladx.go
-OPTS=-v -r x3@example.com -s mx.example.com < mel1.txt
+OPTS=-v -r x3@sra.fr < mel1.txt
 
 .PHONY: run
 run:
