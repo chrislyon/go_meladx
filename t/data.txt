@@ -1,0 +1,6 @@
+total 4
+-rw-rwxr--    1 christop UsersGrp       792 Jan  7 11:44 args.go
+-rw-rwxr--    1 christop UsersGrp         0 Jan  7 11:45 data.txt
+-rw-rwxr--    1 christop UsersGrp        74 Dec  7 16:56 g1.go
+-rw-rwxr--    1 christop UsersGrp       555 Dec  7 17:07 smail.go
+-rw-rwxr--    1 christop UsersGrp       156 Jan  6 12:41 stdin.go

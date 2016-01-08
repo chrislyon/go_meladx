@@ -1,0 +1,8 @@
+From: test@sra.fr
+To: systeme@sra.fr
+Cc: cbonnet@sra.fr
+Subject: Test d'envoi de message go_meladx
+Ligne1: Test envoi x3
+Ligne2: Test
+Ligne3: Test
+# text/txt [piece jointe] ‘’C:\Temp\filename.txt’’
