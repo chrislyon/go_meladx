@@ -8,7 +8,6 @@
 // -v : mode verbeux
 // -r : expediteur  : adresse mail
 // -s : serveur stmp  : adresse ip ou fqdn
-// -f : config file (a voir)
 // =============================================
 
 package main
@@ -31,7 +30,6 @@ type parametre struct {
 	verbose     bool
 	smtp_server string
 	sender      string
-	config_file string
 }
 
 // Structure pour le fichier de config
@@ -71,21 +69,18 @@ func main() {
 	verbose := flag.Bool("v", false, "Mode verbeux")
 	smtp_server := flag.String("s", "", "SMTP Server Name")
 	sender := flag.String("r", "", "Sender adresse Name")
-	config_file := flag.String("f", "", "Config File Name")
 
 	flag.Parse()
 
 	Param.verbose = *verbose
 	Param.smtp_server = *smtp_server
 	Param.sender = *sender
-	Param.config_file = *config_file
 
 	if DEBUG {
 	 	log.Println("========== START CMD LINE ARGS  =================" )
 		log.Println(fmt.Sprintf(" Verbose Mode : %t ", Param.verbose))
 		log.Println(fmt.Sprintf(" Smtp Server  : %s ", Param.smtp_server))
 		log.Println(fmt.Sprintf(" Expediteur   : %s ", Param.sender))
-		log.Println(fmt.Sprintf(" Config File  : %s ", Param.config_file))
 	}
 
 	// ------------------------------------------
@@ -197,12 +192,16 @@ func main() {
 	body    := strings.Join( BODY, "\n" )
 
 	if DEBUG {
+		log.Println(" TO : ", to )
+		log.Println(" SUBJECT : ", subject )
 		log.Println(" BODY : ", body )
 	}
 
+	// Construction du message
 	msg := []byte( msg_to + subject + body + "\r\n" )
 
-	err := smtp.SendMail( Config_Auth.Server_smtp, auth, Param.sender, to, msg)
+	err := smtp.SendMail( Config_Auth.Server_smtp, auth, Param.sender, to, msg )
+
 	if err != nil {
 		log.Fatal(err)
 	}
