@@ -1,0 +1,3 @@
+# image/gif [Photo de toto] "/tmp/toto.gif"
+# text/txt [Explications] "/tmp/toto.txt"
+# application/octets-stream [des donnees] "/tmp/donnees.dat"
