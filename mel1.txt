@@ -2,9 +2,10 @@ From: test@sra.fr
 To: systeme@sra.fr;cbonnet@sra.fr
 To: mmoua@sra.fr
 To: systst@sra.fr
-Subject: Test d'envoi de message go_meladx
+Subject: ESSAI DE MAIL 
 <pre>
-Ligne1: Test envoi x3
+ FAUT CHANGER 
 Ligne2: Test
 Ligne3: Test
 </pre>
+# text/plain [TEST] "/root/go_meladx/mel1.txt"

@@ -7,7 +7,7 @@ func main() {
 	fmt.Println("DEBUT")
 	m := gomail.NewMessage()
 	m.SetHeader("From", "x3@sra.fr")
-	m.SetHeader("To", "cbonnet@sra.fr", "systeme@sra.fr")
+	m.SetHeader("To", "cbonnet@sra.fr")
 	//m.SetAddressHeader("Cc", "dan@example.com", "Dan")
 	m.SetHeader("Subject", "Hello!")
 	m.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")

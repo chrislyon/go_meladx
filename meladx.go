@@ -23,9 +23,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"gopkg.in/gomail.v2"
 	"io/ioutil"
 	"log"
-	"net/smtp"
 	"os"
 	"path"
 	"regexp"
@@ -44,6 +44,7 @@ type parametre struct {
 // Attention Majuscule obligatoire
 type Config_File struct {
 	Server_smtp 	string
+	Port			int
 	Auth_Login		string
 	Auth_Password	string
 }
@@ -71,6 +72,7 @@ func set_default_config_file () (filename string) {
 	switch os := runtime.GOOS; os {
 		case "linux":
 			filename = "/etc/meladx.conf"
+			filename = "meladx.conf"
 		case "windows":
 			filename = "meladx.conf"
 		default:
@@ -166,6 +168,7 @@ func main() {
 	 	log.Println("========== START CONFIG FILE =================" )
 		log.Println(" Config File   :", set_default_config_file() )
 		log.Println(" Server_smtp   :", Config_Auth.Server_smtp )
+		log.Println(" Port          :", Config_Auth.Port )
 		log.Println(" Auth_Login    :", Config_Auth.Auth_Login )
 		log.Println(" Auth_Password :", Config_Auth.Auth_Password )
 	 }
@@ -257,64 +260,46 @@ func main() {
 		log.Println("===== ENVOI DU MAIL ===========================")
 	}
 
-	// Set up authentication information.
-	auth := smtp.PlainAuth("TLS", Config_Auth.Auth_Login, Config_Auth.Auth_Password, Config_Auth.Server_smtp )
 
-	// Connect to the server, authenticate, set the sender and recipient,
-	// and send the email all in one step.
+	m := gomail.NewMessage()
 
-	// TO pour l'emetteur
-	to      := []string{ TO[0] }
 
 	//From (expediteur)
-	from := fmt.Sprintf( "From: %s\r\n", FROM[0] )
+	m.SetHeader( "From", FROM[0] )
 
-	// La liste des beneficaires
-	msg_to  := ""
+	// La liste des destinataires
 	for _, t := range TO {
-		msg_to  += fmt.Sprintf("To: %s\r\n", t )
+		m.SetHeader( "To", t )
+	}
+
+	// La liste des destinataires CC
+	for _, t := range CC {
+		m.SetHeader( "Cc", t )
 	}
 
 	// Le sujet
-	subject := fmt.Sprintf( "Subject: %s\r\n" , SUBJECT[0] )
+	m.SetHeader( "Subject", fmt.Sprintf("%s", SUBJECT[0] ))
 
-	marker := "-------------- PART_BOUNDARY ---------------"
-	multi_part := "This is a multi-part message in MIME format.\r\n"
-
-	fin_headers := fmt.Sprintf("MIME-Version: 1.0\r\nContent-Type:multipart/mixed; boundary=\"%s\"\r\n%s\r\n%s\r\n", multi_part, marker, marker )
-
-
-	// Le corps
-	ent_body := "\r\nContent-Type: text/html\r\nContent-Transfert-Encoding:8bit\r\n\r\n"
-	body     := fmt.Sprintf( "%s\r\n%s\r\n", strings.Join( BODY, "\n" ), marker )
-
-	if DEBUG {
-		log.Println(" TO : ", to )
-		log.Println(" FROM : ", from )
-		log.Println(" SUBJECT : ", subject )
-		log.Println(" BODY : ", body )
-	}
+	// Le Corps
+	m.SetBody( "text/html", strings.Join( BODY, "\n" ))
 
 	// Les pieces jointes
 	log.Println(" Pieces jointes : ")
 	for _, pj := range PJ {
 		log.Println("PJ : ", pj)
-		p := encode_pj(pj)
-		pj_fmt := "\r\nContent-Type: %s; name=\"%s\"\r\nContent-Transfert-Encoding: base64\r\nContent-Disposition: attachment;"
-		pj_fmt += "filename=\"%s\"\r\n"
-		pj_fmt += "%s\r\n%s\r\n"
-		body += fmt.Sprintf( pj_fmt, p.type_mime, p.description, p.filename, p.body, marker)
-		//log.Println("BODY : ", body)
+		//p := encode_pj(pj)
+		//m.Attach(p.filepath)
 	}
 
-	// Construction du message
-	msg := []byte( from + msg_to + subject + fin_headers + ent_body + body + "\r\n" )
+	fmt.Println("Message : ", m)
 
-	//fmt.Sprintf("\n==============\n%s\n======================\n", msg)
+	// Envoi du message
 
-	err := smtp.SendMail( Config_Auth.Server_smtp, auth, Param.sender, to, msg )
+	d := gomail.NewPlainDialer( Config_Auth.Server_smtp, Config_Auth.Port, Config_Auth.Auth_Login, Config_Auth.Auth_Password )
 
-	if err != nil {
+	if err := d.DialAndSend(m); err != nil {
 		log.Fatal(err)
+	} else {
+		log.Println("Email envoyé", err)
 	}
 }
