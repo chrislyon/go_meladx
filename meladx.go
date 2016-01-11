@@ -198,6 +198,9 @@ func main() {
 	// TO pour l'emetteur
 	to      := []string{ TO[0] }
 
+	//From (expediteur)
+	from := fmt.Sprintf( "From: %s\r\n", FROM[0] )
+
 	// La liste des beneficaires
 	msg_to  := ""
 	for _, t := range TO {
@@ -205,19 +208,25 @@ func main() {
 	}
 
 	// Le sujet
-	subject := fmt.Sprintf( "Subject: %s\r\n\n" , SUBJECT[0] )
+	subject := fmt.Sprintf( "Subject: %s\r\n" , SUBJECT[0] )
+
+	marker := "MAIL_SEPARATOR"
+	fin_headers := fmt.Sprintf("MIME-Version: 1.0\r\nContent-Type:multipart/mixed; boundary=%s\r\n", marker )
+
 
 	// Le corps
-	body    := strings.Join( BODY, "\n" )
+	ent_body := "\r\nContent-Type: text/html\r\nContent-Transfert-Encoding:8bit\r\n\r\n"
+	body     := strings.Join( BODY, "\n" )
 
 	if DEBUG {
 		log.Println(" TO : ", to )
+		log.Println(" FROM : ", from )
 		log.Println(" SUBJECT : ", subject )
 		log.Println(" BODY : ", body )
 	}
 
 	// Construction du message
-	msg := []byte( msg_to + subject + body + "\r\n" )
+	msg := []byte( from + msg_to + subject + fin_headers + body + "\r\n" )
 
 	err := smtp.SendMail( Config_Auth.Server_smtp, auth, Param.sender, to, msg )
 
