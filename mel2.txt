@@ -1,0 +1,15 @@
+From: test@sra.fr
+To: systeme@sra.fr;cbonnet@sra.fr
+To: mmoua@sra.fr
+To: systst@sra.fr
+Subject: Test d'envoi de message go_meladx
+<pre>
+Ligne1: Test envoi x3
+Ligne2: Test
+Ligne3: Test
+</pre>
+# image/png [Photo de toto] "C:\temp\PJ1.png"
+# text/txt [Explications] "C:\temp\PJ2.txt"
+# text/txt [Explications] "C:\temp\INEXISTANT.txt"
+# application/octets-stream [des donnees] "C:\temp\PJ3.dat"
+# application/pdf [UN PDF] "C:\temp\PJ4.pdf"

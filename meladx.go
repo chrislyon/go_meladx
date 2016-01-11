@@ -18,15 +18,19 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/base64"
 	"flag"
 	"fmt"
-	"log"
-	"os"
-	"regexp"
-	"strings"
-	"runtime"
 	"github.com/BurntSushi/toml"
+	"io/ioutil"
+	"log"
 	"net/smtp"
+	"os"
+	"path"
+	"regexp"
+	"runtime"
+	"strings"
 )
 
 // Structure pour les parametres
@@ -43,6 +47,16 @@ type Config_File struct {
 	Auth_Login		string
 	Auth_Password	string
 }
+
+// Structure pour les pieces jointes
+type PJ struct {
+	type_mime string 
+	description string
+	filepath string
+	filename string
+	body string
+}
+
 
 var Param parametre
 
@@ -64,6 +78,60 @@ func set_default_config_file () (filename string) {
 	}
 	return
 }
+
+func f_path( p string) (filename string) {
+	switch os := runtime.GOOS; os {
+		case "windows":
+			t := strings.Split(p, "\\")
+			filename = t[len(t)-1]
+		default:
+			filename = path.Base(p)
+	}
+	return
+}
+
+func encode_pj( pj string )( PJ ) {
+	
+	var re_pj = regexp.MustCompile(`\# (?P<type_mime>.*) \[(?P<description>.*)\] \"(?P<filename>.*)\"$`)
+
+	//fmt.Println("=>", pj)
+
+	result := re_pj.FindStringSubmatch(pj)
+
+	//fmt.Println(" type_mime = ", result[1])
+	//fmt.Println(" Desc      = ", result[2])
+	//fmt.Println(" Filename  = ", result[3])
+
+	p := PJ{ result[1], result[2], result[3], f_path(result[3]), "" }
+
+	content, err := ioutil.ReadFile( p.filepath )
+
+	if err == nil {
+
+		data64 := base64.StdEncoding.EncodeToString(content)
+
+		// Decoupe en lignes
+		var buf bytes.Buffer
+
+		l_max := 80
+		nb_lines := len(data64) / l_max
+
+		for i := 0 ; i < nb_lines ; i++ {
+			buf.WriteString(data64[i*l_max:(i+1)*l_max]+"\n")
+		}
+
+		buf.WriteString(data64[nb_lines*l_max:])
+
+		p.body = buf.String()
+
+		//fmt.Println("p=", p, len(p.body))
+	}
+
+	return p
+
+}
+
+
 
 func main() {
 
@@ -190,7 +258,7 @@ func main() {
 	}
 
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", Config_Auth.Auth_Login, Config_Auth.Auth_Password, Config_Auth.Server_smtp )
+	auth := smtp.PlainAuth("TLS", Config_Auth.Auth_Login, Config_Auth.Auth_Password, Config_Auth.Server_smtp )
 
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
@@ -210,13 +278,15 @@ func main() {
 	// Le sujet
 	subject := fmt.Sprintf( "Subject: %s\r\n" , SUBJECT[0] )
 
-	marker := "MAIL_SEPARATOR"
-	fin_headers := fmt.Sprintf("MIME-Version: 1.0\r\nContent-Type:multipart/mixed; boundary=%s\r\n", marker )
+	marker := "-------------- PART_BOUNDARY ---------------"
+	multi_part := "This is a multi-part message in MIME format.\r\n"
+
+	fin_headers := fmt.Sprintf("MIME-Version: 1.0\r\nContent-Type:multipart/mixed; boundary=\"%s\"\r\n%s\r\n%s\r\n", multi_part, marker, marker )
 
 
 	// Le corps
 	ent_body := "\r\nContent-Type: text/html\r\nContent-Transfert-Encoding:8bit\r\n\r\n"
-	body     := strings.Join( BODY, "\n" )
+	body     := fmt.Sprintf( "%s\r\n%s\r\n", strings.Join( BODY, "\n" ), marker )
 
 	if DEBUG {
 		log.Println(" TO : ", to )
@@ -225,8 +295,22 @@ func main() {
 		log.Println(" BODY : ", body )
 	}
 
+	// Les pieces jointes
+	log.Println(" Pieces jointes : ")
+	for _, pj := range PJ {
+		log.Println("PJ : ", pj)
+		p := encode_pj(pj)
+		pj_fmt := "\r\nContent-Type: %s; name=\"%s\"\r\nContent-Transfert-Encoding: base64\r\nContent-Disposition: attachment;"
+		pj_fmt += "filename=\"%s\"\r\n"
+		pj_fmt += "%s\r\n%s\r\n"
+		body += fmt.Sprintf( pj_fmt, p.type_mime, p.description, p.filename, p.body, marker)
+		//log.Println("BODY : ", body)
+	}
+
 	// Construction du message
-	msg := []byte( from + msg_to + subject + fin_headers + body + "\r\n" )
+	msg := []byte( from + msg_to + subject + fin_headers + ent_body + body + "\r\n" )
+
+	//fmt.Sprintf("\n==============\n%s\n======================\n", msg)
 
 	err := smtp.SendMail( Config_Auth.Server_smtp, auth, Param.sender, to, msg )
 

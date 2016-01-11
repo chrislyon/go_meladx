@@ -1,3 +1,4 @@
-# image/gif [Photo de toto] "/tmp/toto.gif"
-# text/txt [Explications] "/tmp/toto.txt"
-# application/octets-stream [des donnees] "/tmp/donnees.dat"
+# image/png [Photo de toto] "C:\temp\PJ1.png"
+# text/txt [Explications] "C:\temp\PJ2.txt"
+# application/octets-stream [des donnees] "C:\temp\PJ3.dat"
+# application/pdf [UN PDF] "C:\temp\PJ4.pdf"
